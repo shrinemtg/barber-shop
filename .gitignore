@@ -39,3 +39,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# 個人設定・シークレット・AIツール関連
+.cursor/
+*.md
+*.env
+*.key
+*.token
