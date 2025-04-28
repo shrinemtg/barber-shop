@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Image from "next/image";
 import styled from "styled-components";
 
@@ -16,6 +16,8 @@ const SCALE_SIDE = 0.85;
 
 const StyleGallery = () => {
   const [current, setCurrent] = useState(0);
+  const touchStartX = useRef<number | null>(null);
+  const touchEndX = useRef<number | null>(null);
 
   // 位置計算: 中央=0, 左=-1, 右=1, それ以外は非表示
   const getPosition = (i: number) => {
@@ -30,10 +32,34 @@ const StyleGallery = () => {
   // カード全体の中央基準オフセット
   const cardsWidth = CARD_WIDTH * 3 + CARD_GAP * 2;
 
+  // スワイプ開始
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+  // スワイプ終了
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    touchEndX.current = e.changedTouches[0].clientX;
+    if (touchStartX.current !== null && touchEndX.current !== null) {
+      const diff = touchStartX.current - touchEndX.current;
+      if (Math.abs(diff) > 40) {
+        // スワイプ閾値
+        if (diff > 0) {
+          // 左スワイプ: 次へ
+          setCurrent((prev) => (prev + 1) % images.length);
+        } else {
+          // 右スワイプ: 前へ
+          setCurrent((prev) => (prev - 1 + images.length) % images.length);
+        }
+      }
+    }
+    touchStartX.current = null;
+    touchEndX.current = null;
+  };
+
   return (
     <GallerySection>
       <Title id="style">Style Gallery</Title>
-      <SliderWrap>
+      <SliderWrap onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
         <Cards style={{ width: cardsWidth }}>
           {images.map((img, i) => {
             const pos = getPosition(i);
